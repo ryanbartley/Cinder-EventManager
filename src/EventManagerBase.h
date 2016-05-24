@@ -1,10 +1,40 @@
+//========================================================================
+// EventManager.h : implements a multi-listener multi-sender event system
 //
-//  EventManagerBase.h
-//  RendererTest
+// Part of the GameCode4 Application
 //
-//  Created by Ryan Bartley on 8/17/14.
+// GameCode4 is the sample application that encapsulates much of the source code
+// discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
+// "Rez" Graham, published by Charles River Media.
+// ISBN-10: 1133776574 | ISBN-13: 978-1133776574
 //
+// If this source code has found it's way to you, and you think it has helped you
+// in any way, do the authors a favor and buy a new copy of the book - there are
+// detailed explanations in it that compliment this code well. Buy a copy at Amazon.com
+// by clicking here:
+//    http://www.amazon.com/gp/product/1133776574/ref=olp_product_details?ie=UTF8&me=&seller=
 //
+// There's a companion web site at http://www.mcshaffry.com/GameCode/
+//
+// The source code is managed and maintained through Google Code:
+//    http://code.google.com/p/gamecode4/
+//
+// (c) Copyright 2012 Michael L. McShaffry and David Graham
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser GPL v3
+// as published by the Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+// http://www.gnu.org/licenses/lgpl-3.0.txt for more details.
+//
+// You should have received a copy of the GNU Lesser GPL v3
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+//
+//========================================================================
 
 #pragma once
 
@@ -17,7 +47,7 @@ using EventListenerDelegate = fastdelegate::FastDelegate1<EventDataRef, void>;
 class EventManagerBase {
 public:
 	
-	static const uint64_t kINFINITE = 0xffffffffffffffff;
+	enum eConstants { kINFINITE = 0xffffffff };
 	explicit EventManagerBase( const std::string &name, bool setAsGlobal );
 	virtual ~EventManagerBase();
 	
@@ -62,10 +92,18 @@ public:
 	// It is not valid to have more than one global event manager.
 	static EventManagerBase* get();
 	
-	// Returns the name of this Manager. Don't know that this is totally useful.
-	std::string& getName() { return mName; }
-	
-private:
-	// Don't totally know if this is helpful.
-	std::string mName;
+	//! Registers a delegate function that will get called when the event type is
+	//! triggered. NOTE: This listener can be called from any thread. Appropriate
+	//! locks in the listener should be considered. Returns true if successful,
+	//! false if not. This function is Thread Safe
+	virtual bool addThreadedListener( const EventListenerDelegate &eventDelegate, const EventType &type ) = 0;
+	//! Removes a delegate / event type pairing from the internal tables. This
+	//! function removes in a Thread Safe manner. Returns false if the pairing
+	//! was not found.
+	virtual bool removeThreadedListener( const EventListenerDelegate &eventDelegate, const EventType &type ) = 0;
+	//! Fires off event NOW. NOTE: This function could be called from any thread.
+	//! This bypasses the queue entirely and immediately calls all delegate functions
+	//! registered to listen for this event.
+	virtual bool triggerThreadedEvent( const EventDataRef &event ) = 0;
+	virtual void removeAllThreadedListeners() = 0;
 };
