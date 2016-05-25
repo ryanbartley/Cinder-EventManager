@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include <string>
 #include "BaseEventData.h"
 #include "FastDelegate.h"
 	
