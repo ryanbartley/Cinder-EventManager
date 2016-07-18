@@ -22,7 +22,7 @@ public:
 
 	virtual EventDataRef copy() = 0;
 	virtual const char* getName() const = 0;
-	virtual EventType getEventType() const = 0;
+	virtual EventType getTypeId() const = 0;
 	float getTimeStamp() { return mTimeStamp; }
 	
 	bool isHandled() { return mIsHandled; }

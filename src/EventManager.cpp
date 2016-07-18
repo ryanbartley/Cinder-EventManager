@@ -84,7 +84,7 @@ bool EventManager::addListener( const EventListenerDelegate &eventDelegate, cons
 		++listenIt;
 	}
 	eventDelegateList.push_back(eventDelegate);
-	CI_LOG_V("Successfully added delegate for event type: " + to_string( type ) );
+	//CI_LOG_V("Successfully added delegate for event type: " + to_string( type ) );
 	return true;
 }
 	
@@ -113,7 +113,7 @@ bool EventManager::triggerEvent( const EventDataRef &event )
 	//LOG_EVENT("Attempting to trigger event: " + std::string( event->getName() ) );
 	bool processed = false;
 	
-	auto found = mEventListeners.find(event->getEventType());
+	auto found = mEventListeners.find(event->getTypeId());
 	if( found != mEventListeners.end() ) {
 		const auto & eventListenerList = found->second;
 		for( auto listIt = eventListenerList.begin(); listIt != eventListenerList.end(); ++listIt ) {
@@ -138,7 +138,7 @@ bool EventManager::queueEvent( const EventDataRef &event )
 	
 //	CI_LOG_V("Attempting to queue event: " + std::string( event->getName() ) );
 	
-	auto found = mEventListeners.find( event->getEventType() );
+	auto found = mEventListeners.find( event->getTypeId() );
 	if( found != mEventListeners.end() ) {
 		mQueues[mActiveQueue].push_back(event);
 		LOG_EVENT("Successfully queued event: " + std::string( event->getName() ) );
@@ -168,7 +168,7 @@ bool EventManager::abortEvent( const EventType &type, bool allOfType )
 		auto end = eventQueue.end();
 		while( eventIt != end ) {
 			
-			if( (*eventIt)->getEventType() == type ) {
+			if( (*eventIt)->getTypeId() == type ) {
 				eventIt = eventQueue.erase(eventIt);
 				success = true;
 				if( ! allOfType )
@@ -192,7 +192,7 @@ bool EventManager::addThreadedListener( const EventListenerDelegate &eventDelega
 		}
 	}
 	eventDelegateList.push_back(eventDelegate);
-	CI_LOG_V("Successfully added delegate for event type: " + to_string( type ) );
+	//CI_LOG_V("Successfully added delegate for event type: " + to_string( type ) );
 	return true;
 }
 
@@ -225,7 +225,7 @@ bool EventManager::triggerThreadedEvent( const EventDataRef &event )
 	std::lock_guard<std::mutex> lock( mThreadedEventListenerMutex );
 	
 	bool processed = false;
-	auto found = mThreadedEventListeners.find(event->getEventType());
+	auto found = mThreadedEventListeners.find(event->getTypeId());
 	if( found != mThreadedEventListeners.end() ) {
 		const auto & eventListenerList = found->second;
 		for( auto & listener : eventListenerList ) {
@@ -260,7 +260,7 @@ bool EventManager::update( uint64_t maxMillis )
 		mQueues[queueToProcess].pop_front();
 		LOG_EVENT("\t\tProcessing Event " + std::string(event->getName()));
 		
-		const auto & eventType = event->getEventType();
+		const auto & eventType = event->getTypeId();
 		
 		auto found = mEventListeners.find(eventType);
 		if (found != mEventListeners.end()) {
