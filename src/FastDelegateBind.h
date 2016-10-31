@@ -14,6 +14,8 @@
 // HISTORY:
 //	1.4 Dec 2004. Initial release as part of FastDelegate 1.4.
 
+/* The classes below are exported */
+#pragma GCC visibility push(default)
 
 #ifndef FASTDELEGATEBIND_H
 #define FASTDELEGATEBIND_H
@@ -240,4 +242,6 @@ bind(
 } // namespace fastdelegate
 
 #endif // !defined(FASTDELEGATEBIND_H)
+
+#pragma GCC visibility pop
 

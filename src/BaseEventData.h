@@ -8,9 +8,14 @@
 
 #pragma once
 
+/* The classes below are exported */
+#pragma GCC visibility push(default)
+
 #include <memory>
 
-#include "cinder/Buffer.h"
+namespace cinder {
+	class Buffer;
+}
 
 using EventDataRef = std::shared_ptr<class EventData>;
 using EventType = uint64_t;
@@ -28,10 +33,13 @@ public:
 	bool isHandled() { return mIsHandled; }
 	void setIsHandled( bool handled = true ) { mIsHandled = handled; }
 	
-	virtual void serialize( ci::Buffer &streamOut ) = 0;
-	virtual void deSerialize( const ci::Buffer &streamIn ) = 0;
+	virtual void serialize( cinder::Buffer &streamOut ) = 0;
+	virtual void deSerialize( const cinder::Buffer &streamIn ) = 0;
 	
 private:
 	const float mTimeStamp;
 	bool		mIsHandled;
 };
+
+
+#pragma GCC visibility pop

@@ -37,7 +37,7 @@
 //========================================================================
 
 #include "EventManagerBase.h"
-#include "cinder/Log.h"
+#include <iostream>
 	
 static EventManagerBase* kEventManager = nullptr;
 	
@@ -50,7 +50,7 @@ EventManagerBase::EventManagerBase( const std::string &name, bool setAsGlobal )
 {
 	if ( setAsGlobal ) {
 		if ( kEventManager ) {
-			CI_LOG_E("Attempting to make two Event Managers. Deleting the old one and replacing with the new one");
+			std::cout << "Attempting to make two Event Managers. Deleting the old one and replacing with the new one" << std::endl;
 			delete kEventManager;
 		}
 		kEventManager = this;

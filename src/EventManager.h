@@ -37,6 +37,8 @@
 //========================================================================
 
 #pragma once
+/* The classes below are exported */
+#pragma GCC visibility push(default)
 
 #include "EventManagerBase.h"
 
@@ -86,3 +88,5 @@ private:
 	uint32_t							mActiveQueue;
 
 };
+
+#pragma GCC visibility pop

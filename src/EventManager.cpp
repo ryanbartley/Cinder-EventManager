@@ -37,13 +37,12 @@
 //========================================================================
 
 #include "EventManager.h"
-#include "cinder/Log.h"
-#include "cinder/app/App.h"
+#include <iostream>
+#include <assert.h>
 
 //#define LOG_EVENT( stream )	CI_LOG_I( stream )
 #define LOG_EVENT( stream )	((void)0)
 
-using namespace ci;
 using namespace std;
 	
 EventManager::EventManager( const std::string &name, bool setAsGlobal )
@@ -59,26 +58,26 @@ EventManagerRef EventManager::create( const std::string &name, bool setAsGlobal 
 	
 EventManager::~EventManager()
 {
-	CI_LOG_I( "Cleaning up event manager" );
+	std::cout << "Cleaning up event manager" << std::endl;
 	mEventListeners.clear();
 	mQueues[0].clear();
 	mQueues[1].clear();
-	CI_LOG_I( "Removing all threaded events" );
+	std::cout << "Removing all threaded events" << std::endl;
 	std::lock_guard<std::mutex> lock( mThreadedEventListenerMutex );
 	mThreadedEventListeners.clear();
-	CI_LOG_I( "Removed ALL EVENT LISTENERS" );
+	std::cout << "Removed ALL EVENT LISTENERS" << std::endl;
 }
 	
 bool EventManager::addListener( const EventListenerDelegate &eventDelegate, const EventType &type )
 {
-	LOG_EVENT( "Attempting to add delegate function for event type: " + to_string( type ) );
+	std::cout << "Attempting to add delegate function for event type: " + to_string( type ) << std::endl;
 	
 	auto & eventDelegateList = mEventListeners[type];
 	auto listenIt = eventDelegateList.begin();
 	auto end = eventDelegateList.end();
 	while ( listenIt != end ) {
 		if ( eventDelegate == (*listenIt) ) {
-			CI_LOG_W("Attempting to double-register a delegate");
+			std::cout << "Attempting to double-register a delegate" << std::endl;
 			return false;
 		}
 		++listenIt;
@@ -129,11 +128,11 @@ bool EventManager::triggerEvent( const EventDataRef &event )
 	
 bool EventManager::queueEvent( const EventDataRef &event )
 {
-	CI_ASSERT(mActiveQueue < NUM_QUEUES);
+	assert(mActiveQueue < NUM_QUEUES);
 	
 	// make sure the event is valid
 	if( !event ) {
-		CI_LOG_E("Invalid event in queueEvent");
+		LOG_EVENT("Invalid event in queueEvent");
 	}
 	
 //	CI_LOG_V("Attempting to queue event: " + std::string( event->getName() ) );
@@ -156,8 +155,8 @@ bool EventManager::queueEvent( const EventDataRef &event )
 	
 bool EventManager::abortEvent( const EventType &type, bool allOfType )
 {
-	CI_ASSERT(mActiveQueue >= 0);
-	CI_ASSERT(mActiveQueue > NUM_QUEUES);
+	assert(mActiveQueue >= 0);
+	assert(mActiveQueue > NUM_QUEUES);
 	
 	bool success = false;
 	auto found = mEventListeners.find( type );
@@ -187,7 +186,7 @@ bool EventManager::addThreadedListener( const EventListenerDelegate &eventDelega
 	auto & eventDelegateList = mThreadedEventListeners[type];
 	for ( auto & delegate : eventDelegateList ) {
 		if ( eventDelegate == delegate ) {
-			CI_LOG_W("Attempting to double-register a delegate");
+			LOG_EVENT("Attempting to double-register a delegate");
 			return false;
 		}
 	}
@@ -233,16 +232,15 @@ bool EventManager::triggerThreadedEvent( const EventDataRef &event )
 			processed = true;
 		}
 	}
-#if ! defined(SHARINGSTATION)
 	if( ! processed )
-		CI_LOG_E( "Tried triggering MultiThreaded Event without a listener" );
-#endif
+		LOG_EVENT( "Tried triggering MultiThreaded Event without a listener" );
 	return processed;
 }
 	
 bool EventManager::update( uint64_t maxMillis )
 {
-	uint64_t currMs = app::App::get()->getElapsedSeconds() * 1000;
+	static uint64_t currMs = 0;
+	currMs = (1.0 / 60.0) * 1000;
 	uint64_t maxMs = (( maxMillis == EventManager::kINFINITE ) ? (EventManager::kINFINITE) : (currMs + maxMillis) );
 	
 	int queueToProcess = mActiveQueue;
@@ -277,7 +275,7 @@ bool EventManager::update( uint64_t maxMillis )
 			}
 		}
 		
-		currMs = app::App::get()->getElapsedSeconds() * 1000;//Engine::getTickCount();
+//		currMs = app::App::get()->getElapsedSeconds() * 1000;//Engine::getTickCount();
 		if( maxMillis != EventManager::kINFINITE && currMs >= maxMs ) {
 			LOG_EVENT("Aborting event processing; time ran out");
 			break;

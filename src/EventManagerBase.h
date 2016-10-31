@@ -38,6 +38,9 @@
 
 #pragma once
 
+/* The classes below are exported */
+#pragma GCC visibility push(default)
+
 #include <string>
 #include "BaseEventData.h"
 #include "FastDelegate.h"
@@ -108,3 +111,6 @@ public:
 	virtual bool triggerThreadedEvent( const EventDataRef &event ) = 0;
 	virtual void removeAllThreadedListeners() = 0;
 };
+
+/* The classes below are exported */
+#pragma GCC visibility pop
