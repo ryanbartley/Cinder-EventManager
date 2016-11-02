@@ -1,7 +1,10 @@
 if( NOT TARGET Cinder-EventManger )
   get_filename_component( CINDER_EVENT_BLOCK_PATH "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE )
   get_filename_component( CINDER_EVENT_INCLUDE_PATH "${CINDER_EVENT_BLOCK_PATH}/src" ABSOLUTE )
-	get_filename_component( CINDER_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE )
+	
+  if( NOT EXISTS ${CINDER_PATH} )
+    get_filename_component( CINDER_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE )
+  endif()
 
   add_library( Cinder-EventManager
     ${CINDER_EVENT_INCLUDE_PATH}/EventManager.cpp 
