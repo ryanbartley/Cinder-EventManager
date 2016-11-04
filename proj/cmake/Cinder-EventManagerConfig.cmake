@@ -11,7 +11,7 @@ if( NOT TARGET Cinder-EventManger )
     ${CINDER_EVENT_INCLUDE_PATH}/EventManagerBase.cpp 
   )
 
-  target_compile_options( Cinder-EventManager PUBLIC "-std=c++11" )
+  #target_compile_options( Cinder-EventManager PUBLIC "-std=c++11" )
 
   target_include_directories( Cinder-EventManager PUBLIC "${CINDER_EVENT_INCLUDE_PATH}" )
 
