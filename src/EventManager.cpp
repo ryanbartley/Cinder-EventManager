@@ -58,26 +58,26 @@ EventManagerRef EventManager::create( const std::string &name, bool setAsGlobal 
 	
 EventManager::~EventManager()
 {
-	std::cout << "Cleaning up event manager" << std::endl;
+	//std::cout << "Cleaning up event manager" << std::endl;
 	mEventListeners.clear();
 	mQueues[0].clear();
 	mQueues[1].clear();
-	std::cout << "Removing all threaded events" << std::endl;
+	//std::cout << "Removing all threaded events" << std::endl;
 	std::lock_guard<std::mutex> lock( mThreadedEventListenerMutex );
 	mThreadedEventListeners.clear();
-	std::cout << "Removed ALL EVENT LISTENERS" << std::endl;
+	//std::cout << "Removed ALL EVENT LISTENERS" << std::endl;
 }
 	
 bool EventManager::addListener( const EventListenerDelegate &eventDelegate, const EventType &type )
 {
-	std::cout << "Attempting to add delegate function for event type: " + to_string( type ) << std::endl;
+	//std::cout << "Attempting to add delegate function for event type: " + to_string( type ) << std::endl;
 	
 	auto & eventDelegateList = mEventListeners[type];
 	auto listenIt = eventDelegateList.begin();
 	auto end = eventDelegateList.end();
 	while ( listenIt != end ) {
 		if ( eventDelegate == (*listenIt) ) {
-			std::cout << "Attempting to double-register a delegate" << std::endl;
+			//std::cout << "Attempting to double-register a delegate" << std::endl;
 			return false;
 		}
 		++listenIt;
