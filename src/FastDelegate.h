@@ -46,7 +46,10 @@
 //                * More optimal assignment,== and != operators for static function pointers.
 
 /* The classes below are exported */
+#pragma warning( push )
+#pragma warning( disable : 4068 )
 #pragma GCC visibility push(default)
+#pragma warning( pop )
 
 #ifndef FASTDELEGATE_H
 #define FASTDELEGATE_H
@@ -2110,5 +2113,8 @@ FastDelegate8<Param1, Param2, Param3, Param4, Param5, Param6, Param7, Param8, FA
 #endif // !defined(FASTDELEGATE_H)
 
 /* The classes below are exported */
+#pragma warning( push )
+#pragma warning( disable : 4068 )
 #pragma GCC visibility pop
+#pragma warning( pop )
 

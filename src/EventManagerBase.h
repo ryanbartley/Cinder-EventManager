@@ -37,9 +37,11 @@
 //========================================================================
 
 #pragma once
-
+#pragma warning( push )
+#pragma warning( disable : 4068 )
 /* The classes below are exported */
 #pragma GCC visibility push(default)
+#pragma warning( pop )
 
 #include <string>
 #include "BaseEventData.h"
@@ -113,4 +115,7 @@ public:
 };
 
 /* The classes below are exported */
+#pragma warning( push )
+#pragma warning( disable : 4068 )
 #pragma GCC visibility pop
+#pragma warning( pop )

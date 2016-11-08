@@ -37,8 +37,11 @@
 //========================================================================
 
 #pragma once
+#pragma warning(push)
+#pragma warning( disable : 4068 )
 /* The classes below are exported */
 #pragma GCC visibility push(default)
+#pragma warning( pop )
 
 #include "EventManagerBase.h"
 
