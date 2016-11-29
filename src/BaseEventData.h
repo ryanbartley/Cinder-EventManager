@@ -27,7 +27,6 @@ public:
 	explicit EventData( float timestamp = 0.0f ) : mTimeStamp( timestamp ), mIsHandled( false ) {}
 	virtual ~EventData() {}
 
-	virtual EventDataRef copy() = 0;
 	virtual const char* getName() const = 0;
 	virtual EventType getTypeId() const = 0;
 	float getTimeStamp() { return mTimeStamp; }
@@ -35,8 +34,9 @@ public:
 	bool isHandled() { return mIsHandled; }
 	void setIsHandled( bool handled = true ) { mIsHandled = handled; }
 	
-	virtual void serialize( cinder::Buffer &streamOut ) = 0;
-	virtual void deSerialize( const cinder::Buffer &streamIn ) = 0;
+	virtual void serialize( cinder::Buffer &streamOut ) {}
+	virtual void deSerialize( const cinder::Buffer &streamIn ) {}
+	virtual EventDataRef copy() { return EventDataRef(); }
 	
 private:
 	const float mTimeStamp;
