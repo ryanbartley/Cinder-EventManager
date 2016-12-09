@@ -14,14 +14,17 @@
 // HISTORY:
 //	1.4 Dec 2004. Initial release as part of FastDelegate 1.4.
 
-/* The classes below are exported */
-#pragma GCC visibility push(default)
-
 #ifndef FASTDELEGATEBIND_H
 #define FASTDELEGATEBIND_H
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
+
+#pragma warning( push )
+#pragma warning( disable : 4068 )
+/* The classes below are exported */
+#pragma GCC visibility push(default)
+#pragma warning( pop )
 
 ////////////////////////////////////////////////////////////////////////////////
 //						FastDelegate bind()
@@ -243,5 +246,8 @@ bind(
 
 #endif // !defined(FASTDELEGATEBIND_H)
 
+#pragma warning( push )
+#pragma warning( disable : 4068 )
 #pragma GCC visibility pop
+#pragma warning( pop )
 

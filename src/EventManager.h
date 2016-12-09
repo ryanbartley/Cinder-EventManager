@@ -92,4 +92,8 @@ private:
 
 };
 
+/* The classes below are exported */
+#pragma warning( push )
+#pragma warning( disable : 4068 )
 #pragma GCC visibility pop
+#pragma warning( pop )
