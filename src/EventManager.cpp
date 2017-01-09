@@ -46,7 +46,7 @@
 using namespace std;
 	
 EventManager::EventManager( const std::string &name, bool setAsGlobal )
-: EventManagerBase( name, setAsGlobal ), mActiveQueue( 0 )
+: EventManagerBase( name, setAsGlobal ), mActiveQueue( 0 ), mUpdatingQueue( false )
 {
 	
 }
@@ -92,15 +92,20 @@ bool EventManager::removeListener( const EventListenerDelegate &eventDelegate, c
 	LOG_EVENT("Attempting to remove delegate function from event type: " + to_string( type ) );
 	bool success = false;
 	
-	auto found = mEventListeners.find(type);
-	if( found != mEventListeners.end() ) {
-		auto & listeners = found->second;
-		for( auto listIt = listeners.begin(); listIt != listeners.end(); ++listIt ) {
-			if( eventDelegate == (*listIt) ) {
-				listeners.erase(listIt);
-				LOG_EVENT("Successfully removed delegate function from event type: ");
-				success = true;
-				break;
+	if( mUpdatingQueue ) {
+		mRemoveAfterUpdate.emplace_back( type, eventDelegate );
+	}
+	else {
+		auto found = mEventListeners.find(type);
+		if( found != mEventListeners.end() ) {
+			auto & listeners = found->second;
+			for( auto listIt = listeners.begin(); listIt != listeners.end(); ++listIt ) {
+				if( eventDelegate == (*listIt) ) {
+					listeners.erase(listIt);
+					LOG_EVENT("Successfully removed delegate function from event type: ");
+					success = true;
+					break;
+				}
 			}
 		}
 	}
@@ -243,6 +248,8 @@ bool EventManager::update( uint64_t maxMillis )
 	currMs = (1.0 / 60.0) * 1000;
 	uint64_t maxMs = (( maxMillis == EventManager::kINFINITE ) ? (EventManager::kINFINITE) : (currMs + maxMillis) );
 	
+	mUpdatingQueue = true;
+	
 	int queueToProcess = mActiveQueue;
 	mActiveQueue = (mActiveQueue + 1) % NUM_QUEUES;
 	mQueues[mActiveQueue].clear();
@@ -289,6 +296,18 @@ bool EventManager::update( uint64_t maxMillis )
 			mQueues[queueToProcess].pop_back();
 			mQueues[mActiveQueue].push_front(event);
 		}
+	}
+	
+	mUpdatingQueue = false;
+	if( ! mRemoveAfterUpdate.empty() ) {
+		std::sort( mRemoveAfterUpdate.begin(), mRemoveAfterUpdate.end(),
+		[]( const pair<EventType, EventListenerDelegate> &a,
+		    const pair<EventType, EventListenerDelegate> &b ){
+			return a.first < b.first;
+		});
+		// TODO: this can be better.
+		for( auto &removeEvent : mRemoveAfterUpdate )
+			removeListener( removeEvent.second, removeEvent.first );
 	}
 	
 	return queueFlushed;

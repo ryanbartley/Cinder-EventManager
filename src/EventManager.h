@@ -89,7 +89,10 @@ private:
 	EventListenerMap					mEventListeners;
 	std::array<EventQueue, NUM_QUEUES>  mQueues;
 	uint32_t							mActiveQueue;
-
+	
+	std::vector<std::pair<EventType, EventListenerDelegate>> mRemoveAfterUpdate;
+	
+	bool								mUpdatingQueue;
 };
 
 /* The classes below are exported */
