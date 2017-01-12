@@ -45,6 +45,7 @@
 
 #include "EventManagerBase.h"
 
+#include <vector>
 #include <deque>
 #include <map>
 #include <array>
