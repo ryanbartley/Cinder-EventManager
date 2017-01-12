@@ -71,18 +71,22 @@ EventManager::~EventManager()
 bool EventManager::addListener( const EventListenerDelegate &eventDelegate, const EventType &type )
 {
 	//std::cout << "Attempting to add delegate function for event type: " + to_string( type ) << std::endl;
-	
-	auto & eventDelegateList = mEventListeners[type];
-	auto listenIt = eventDelegateList.begin();
-	auto end = eventDelegateList.end();
-	while ( listenIt != end ) {
-		if ( eventDelegate == (*listenIt) ) {
-			//std::cout << "Attempting to double-register a delegate" << std::endl;
-			return false;
-		}
-		++listenIt;
+	if( mUpdatingQueue ) {
+		mAddAfterUpdate.emplace_back( type, eventDelegate );
 	}
-	eventDelegateList.push_back(eventDelegate);
+	else {
+		auto & eventDelegateList = mEventListeners[type];
+		auto listenIt = eventDelegateList.begin();
+		auto end = eventDelegateList.end();
+		while ( listenIt != end ) {
+			if ( eventDelegate == (*listenIt) ) {
+				//std::cout << "Attempting to double-register a delegate" << std::endl;
+				return false;
+			}
+			++listenIt;
+		}
+		eventDelegateList.push_back(eventDelegate);
+	}
 	//CI_LOG_V("Successfully added delegate for event type: " + to_string( type ) );
 	return true;
 }
@@ -308,6 +312,16 @@ bool EventManager::update( uint64_t maxMillis )
 		// TODO: this can be better.
 		for( auto &removeEvent : mRemoveAfterUpdate )
 			removeListener( removeEvent.second, removeEvent.first );
+	}
+	if( ! mAddAfterUpdate.empty() ) {
+		std::sort( mAddAfterUpdate.begin(), mAddAfterUpdate.end(),
+		[]( const pair<EventType, EventListenerDelegate> &a,
+		    const pair<EventType, EventListenerDelegate> &b ){
+					  return a.first < b.first;
+		});
+		// TODO: this can be better.
+		for( auto &removeEvent : mAddAfterUpdate )
+			addListener( removeEvent.second, removeEvent.first );
 	}
 	
 	return queueFlushed;

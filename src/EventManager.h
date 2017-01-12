@@ -92,6 +92,7 @@ private:
 	uint32_t							mActiveQueue;
 	
 	std::vector<std::pair<EventType, EventListenerDelegate>> mRemoveAfterUpdate;
+	std::vector<std::pair<EventType, EventListenerDelegate>> mAddAfterUpdate;
 	
 	bool								mUpdatingQueue;
 };
