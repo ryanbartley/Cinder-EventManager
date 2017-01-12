@@ -41,8 +41,8 @@
 #include <assert.h>
 #include "cinder/Log.h"
 
-#define LOG_EVENT( stream )	CI_LOG_I( stream )
-//#define LOG_EVENT( stream )	((void)0)
+//#define LOG_EVENT( stream )	CI_LOG_I( stream )
+#define LOG_EVENT( stream )	((void)0)
 
 using namespace std;
 	
@@ -59,14 +59,14 @@ EventManagerRef EventManager::create( const std::string &name, bool setAsGlobal 
 	
 EventManager::~EventManager()
 {
-	//std::cout << "Cleaning up event manager" << std::endl;
+	LOG_EVENT("Cleaning up event manager");
 	mEventListeners.clear();
 	mQueues[0].clear();
 	mQueues[1].clear();
-	//std::cout << "Removing all threaded events" << std::endl;
+	LOG_EVENT("Removing all threaded events");
 	std::lock_guard<std::mutex> lock( mThreadedEventListenerMutex );
 	mThreadedEventListeners.clear();
-	//std::cout << "Removed ALL EVENT LISTENERS" << std::endl;
+	LOG_EVENT("Removed ALL EVENT LISTENERS");
 }
 	
 bool EventManager::addListener( const EventListenerDelegate &eventDelegate, const EventType &type )
@@ -312,6 +312,7 @@ bool EventManager::update( uint64_t maxMillis )
 		});
 		for( auto &removeEvent : mRemoveAfterUpdate )
 			removeListener( removeEvent.second, removeEvent.first );
+		mRemoveAfterUpdate.clear();
 	}
 	if( ! mAddAfterUpdate.empty() ) {
 		std::sort( mAddAfterUpdate.begin(), mAddAfterUpdate.end(),
@@ -321,6 +322,7 @@ bool EventManager::update( uint64_t maxMillis )
 		});
 		for( auto &removeEvent : mAddAfterUpdate )
 			addListener( removeEvent.second, removeEvent.first );
+		mAddAfterUpdate.clear();
 	}
 	
 	return queueFlushed;
