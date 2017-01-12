@@ -39,9 +39,10 @@
 #include "EventManager.h"
 #include <iostream>
 #include <assert.h>
+#include "cinder/Log.h"
 
-//#define LOG_EVENT( stream )	CI_LOG_I( stream )
-#define LOG_EVENT( stream )	((void)0)
+#define LOG_EVENT( stream )	CI_LOG_I( stream )
+//#define LOG_EVENT( stream )	((void)0)
 
 using namespace std;
 	
@@ -70,7 +71,7 @@ EventManager::~EventManager()
 	
 bool EventManager::addListener( const EventListenerDelegate &eventDelegate, const EventType &type )
 {
-	//std::cout << "Attempting to add delegate function for event type: " + to_string( type ) << std::endl;
+	LOG_EVENT("Attempting to add delegate function for event type: " + to_string( type ));
 	if( mUpdatingQueue ) {
 		mAddAfterUpdate.emplace_back( type, eventDelegate );
 	}
@@ -80,14 +81,14 @@ bool EventManager::addListener( const EventListenerDelegate &eventDelegate, cons
 		auto end = eventDelegateList.end();
 		while ( listenIt != end ) {
 			if ( eventDelegate == (*listenIt) ) {
-				//std::cout << "Attempting to double-register a delegate" << std::endl;
+				LOG_EVENT("Attempting to double-register a delegate");
 				return false;
 			}
 			++listenIt;
 		}
 		eventDelegateList.push_back(eventDelegate);
 	}
-	//CI_LOG_V("Successfully added delegate for event type: " + to_string( type ) );
+	LOG_EVENT("Successfully added delegate for event type: " + to_string( type ) );
 	return true;
 }
 	
@@ -118,7 +119,7 @@ bool EventManager::removeListener( const EventListenerDelegate &eventDelegate, c
 	
 bool EventManager::triggerEvent( const EventDataRef &event )
 {
-	//LOG_EVENT("Attempting to trigger event: " + std::string( event->getName() ) );
+	LOG_EVENT("Attempting to trigger event: " + std::string( event->getName() ) );
 	bool processed = false;
 	
 	auto found = mEventListeners.find(event->getTypeId());
@@ -126,7 +127,7 @@ bool EventManager::triggerEvent( const EventDataRef &event )
 		const auto & eventListenerList = found->second;
 		for( auto listIt = eventListenerList.begin(); listIt != eventListenerList.end(); ++listIt ) {
 			auto& listener = (*listIt);
-			//LOG_EVENT("Sending event " + std::string( event->getName() ) + " to delegate.");
+			LOG_EVENT("Sending event " + std::string( event->getName() ) + " to delegate.");
 			listener( event );
 			processed = true;
 		}
@@ -144,7 +145,7 @@ bool EventManager::queueEvent( const EventDataRef &event )
 		LOG_EVENT("Invalid event in queueEvent");
 	}
 	
-//	CI_LOG_V("Attempting to queue event: " + std::string( event->getName() ) );
+	LOG_EVENT("Attempting to queue event: " + std::string( event->getName() ) );
 	
 	auto found = mEventListeners.find( event->getTypeId() );
 	if( found != mEventListeners.end() ) {
@@ -200,7 +201,7 @@ bool EventManager::addThreadedListener( const EventListenerDelegate &eventDelega
 		}
 	}
 	eventDelegateList.push_back(eventDelegate);
-	//CI_LOG_V("Successfully added delegate for event type: " + to_string( type ) );
+	LOG_EVENT("Successfully added delegate for event type: " + to_string( type ) );
 	return true;
 }
 
@@ -309,7 +310,6 @@ bool EventManager::update( uint64_t maxMillis )
 		    const pair<EventType, EventListenerDelegate> &b ){
 			return a.first < b.first;
 		});
-		// TODO: this can be better.
 		for( auto &removeEvent : mRemoveAfterUpdate )
 			removeListener( removeEvent.second, removeEvent.first );
 	}
@@ -319,7 +319,6 @@ bool EventManager::update( uint64_t maxMillis )
 		    const pair<EventType, EventListenerDelegate> &b ){
 					  return a.first < b.first;
 		});
-		// TODO: this can be better.
 		for( auto &removeEvent : mAddAfterUpdate )
 			addListener( removeEvent.second, removeEvent.first );
 	}
