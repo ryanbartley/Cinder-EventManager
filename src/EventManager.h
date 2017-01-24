@@ -84,6 +84,8 @@ public:
 private:
 	explicit EventManager( const std::string &name, bool setAsGlobal );
 	
+	void consumeAfterListeners();
+	
 	std::mutex							mThreadedEventListenerMutex;
 	EventListenerMap					mThreadedEventListeners;
 	
@@ -91,10 +93,9 @@ private:
 	std::array<EventQueue, NUM_QUEUES>  mQueues;
 	uint32_t							mActiveQueue;
 	
-	std::vector<std::pair<EventType, EventListenerDelegate>> mRemoveAfterUpdate;
-	std::vector<std::pair<EventType, EventListenerDelegate>> mAddAfterUpdate;
-	
-	bool								mUpdatingQueue;
+	using ListenerQueue = std::vector<std::pair<EventType, EventListenerDelegate>>;
+	ListenerQueue	mAddAfter, mRemoveAfter;
+	bool			mFiringEvent;
 };
 
 /* The classes below are exported */

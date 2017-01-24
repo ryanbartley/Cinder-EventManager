@@ -47,7 +47,7 @@
 using namespace std;
 	
 EventManager::EventManager( const std::string &name, bool setAsGlobal )
-: EventManagerBase( name, setAsGlobal ), mActiveQueue( 0 ), mUpdatingQueue( false )
+: EventManagerBase( name, setAsGlobal ), mActiveQueue( 0 ), mFiringEvent( false )
 {
 	
 }
@@ -72,8 +72,8 @@ EventManager::~EventManager()
 bool EventManager::addListener( const EventListenerDelegate &eventDelegate, const EventType &type )
 {
 	LOG_EVENT("Attempting to add delegate function for event type: " + to_string( type ));
-	if( mUpdatingQueue ) {
-		mAddAfterUpdate.emplace_back( type, eventDelegate );
+	if( mFiringEvent ) {
+		mAddAfter.emplace_back( type, eventDelegate );
 	}
 	else {
 		auto & eventDelegateList = mEventListeners[type];
@@ -97,8 +97,8 @@ bool EventManager::removeListener( const EventListenerDelegate &eventDelegate, c
 	LOG_EVENT("Attempting to remove delegate function from event type: " + to_string( type ) );
 	bool success = false;
 	
-	if( mUpdatingQueue ) {
-		mRemoveAfterUpdate.emplace_back( type, eventDelegate );
+	if( mFiringEvent ) {
+		mRemoveAfter.emplace_back( type, eventDelegate );
 	}
 	else {
 		auto found = mEventListeners.find(type);
@@ -122,6 +122,7 @@ bool EventManager::triggerEvent( const EventDataRef &event )
 	LOG_EVENT("Attempting to trigger event: " + std::string( event->getName() ) );
 	bool processed = false;
 	
+	mFiringEvent = true;
 	auto found = mEventListeners.find(event->getTypeId());
 	if( found != mEventListeners.end() ) {
 		const auto & eventListenerList = found->second;
@@ -132,7 +133,9 @@ bool EventManager::triggerEvent( const EventDataRef &event )
 			processed = true;
 		}
 	}
+	mFiringEvent = false;
 	
+	consumeAfterListeners();
 	return processed;
 }
 	
@@ -246,6 +249,30 @@ bool EventManager::triggerThreadedEvent( const EventDataRef &event )
 		LOG_EVENT( "Tried triggering MultiThreaded Event without a listener" );
 	return processed;
 }
+
+void EventManager::consumeAfterListeners()
+{
+	if( ! mRemoveAfter.empty() ) {
+		std::sort( mRemoveAfter.begin(), mRemoveAfter.end(),
+				  []( const pair<EventType, EventListenerDelegate> &a,
+		    const pair<EventType, EventListenerDelegate> &b ){
+					  return a.first < b.first;
+				  });
+		for( auto &removeEvent : mRemoveAfter )
+			removeListener( removeEvent.second, removeEvent.first );
+		mRemoveAfter.clear();
+	}
+	if( ! mAddAfter.empty() ) {
+		std::sort( mAddAfter.begin(), mAddAfter.end(),
+				  []( const pair<EventType, EventListenerDelegate> &a,
+		    const pair<EventType, EventListenerDelegate> &b ){
+					  return a.first < b.first;
+				  });
+		for( auto &removeEvent : mAddAfter )
+			addListener( removeEvent.second, removeEvent.first );
+		mAddAfter.clear();
+	}
+}
 	
 bool EventManager::update( uint64_t maxMillis )
 {
@@ -253,7 +280,7 @@ bool EventManager::update( uint64_t maxMillis )
 	currMs = (1.0 / 60.0) * 1000;
 	uint64_t maxMs = (( maxMillis == EventManager::kINFINITE ) ? (EventManager::kINFINITE) : (currMs + maxMillis) );
 	
-	mUpdatingQueue = true;
+	mFiringEvent = true;
 	
 	int queueToProcess = mActiveQueue;
 	mActiveQueue = (mActiveQueue + 1) % NUM_QUEUES;
@@ -303,27 +330,8 @@ bool EventManager::update( uint64_t maxMillis )
 		}
 	}
 	
-	mUpdatingQueue = false;
-	if( ! mRemoveAfterUpdate.empty() ) {
-		std::sort( mRemoveAfterUpdate.begin(), mRemoveAfterUpdate.end(),
-		[]( const pair<EventType, EventListenerDelegate> &a,
-		    const pair<EventType, EventListenerDelegate> &b ){
-			return a.first < b.first;
-		});
-		for( auto &removeEvent : mRemoveAfterUpdate )
-			removeListener( removeEvent.second, removeEvent.first );
-		mRemoveAfterUpdate.clear();
-	}
-	if( ! mAddAfterUpdate.empty() ) {
-		std::sort( mAddAfterUpdate.begin(), mAddAfterUpdate.end(),
-		[]( const pair<EventType, EventListenerDelegate> &a,
-		    const pair<EventType, EventListenerDelegate> &b ){
-					  return a.first < b.first;
-		});
-		for( auto &removeEvent : mAddAfterUpdate )
-			addListener( removeEvent.second, removeEvent.first );
-		mAddAfterUpdate.clear();
-	}
+	mFiringEvent = false;
+	consumeAfterListeners();
 	
 	return queueFlushed;
 }
