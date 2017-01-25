@@ -252,16 +252,6 @@ bool EventManager::triggerThreadedEvent( const EventDataRef &event )
 
 void EventManager::consumeAfterListeners()
 {
-	if( ! mRemoveAfter.empty() ) {
-		std::sort( mRemoveAfter.begin(), mRemoveAfter.end(),
-				  []( const pair<EventType, EventListenerDelegate> &a,
-		    const pair<EventType, EventListenerDelegate> &b ){
-					  return a.first < b.first;
-				  });
-		for( auto &removeEvent : mRemoveAfter )
-			removeListener( removeEvent.second, removeEvent.first );
-		mRemoveAfter.clear();
-	}
 	if( ! mAddAfter.empty() ) {
 		std::sort( mAddAfter.begin(), mAddAfter.end(),
 				  []( const pair<EventType, EventListenerDelegate> &a,
@@ -271,6 +261,16 @@ void EventManager::consumeAfterListeners()
 		for( auto &removeEvent : mAddAfter )
 			addListener( removeEvent.second, removeEvent.first );
 		mAddAfter.clear();
+	}
+	if( ! mRemoveAfter.empty() ) {
+		std::sort( mRemoveAfter.begin(), mRemoveAfter.end(),
+				  []( const pair<EventType, EventListenerDelegate> &a,
+		    const pair<EventType, EventListenerDelegate> &b ){
+					  return a.first < b.first;
+				  });
+		for( auto &removeEvent : mRemoveAfter )
+			removeListener( removeEvent.second, removeEvent.first );
+		mRemoveAfter.clear();
 	}
 }
 	
