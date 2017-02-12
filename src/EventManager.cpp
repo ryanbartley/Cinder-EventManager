@@ -119,23 +119,26 @@ bool EventManager::removeListener( const EventListenerDelegate &eventDelegate, c
 	
 bool EventManager::triggerEvent( const EventDataRef &event )
 {
-	LOG_EVENT("Attempting to trigger event: " + std::string( event->getName() ) );
-	bool processed = false;
-	
+	LOG_EVENT( "Attempting to trigger event: " + std::string( event->getName() ) );
+	auto processed = false;
+	auto originalFiringEvent = mFiringEvent;
 	mFiringEvent = true;
-	auto found = mEventListeners.find(event->getTypeId());
+
+	auto found = mEventListeners.find( event->getTypeId() );
 	if( found != mEventListeners.end() ) {
 		const auto & eventListenerList = found->second;
 		for( auto listIt = eventListenerList.begin(); listIt != eventListenerList.end(); ++listIt ) {
-			auto& listener = (*listIt);
-			LOG_EVENT("Sending event " + std::string( event->getName() ) + " to delegate.");
+			auto& listener = ( *listIt );
+			LOG_EVENT( "Sending event " + std::string( event->getName() ) + " to delegate." );
 			listener( event );
 			processed = true;
 		}
 	}
-	mFiringEvent = false;
-	
-	consumeAfterListeners();
+	mFiringEvent = originalFiringEvent;
+
+	if( ! mFiringEvent )
+		consumeAfterListeners();
+
 	return processed;
 }
 	
